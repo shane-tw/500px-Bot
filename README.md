@@ -1,5 +1,5 @@
 This bot was developed with the purpose of automating tedious tasks on [500px](https://500px.com/), a website for designers to share samples of their work with each other.
-The general idea is to basically earn yourself 500px followers while not following thousands who have no intentional in following you back.
+The general idea is to basically earn yourself 500px followers while not following thousands who have no intention in following you back.
 # What It Does
 * It obtains a list of newly registered users on 500px's [Upcoming](https://500px.com/upcoming) page.
 * It follows `numFollowsWanted` users on that list, ignoring users already followed, every day.
