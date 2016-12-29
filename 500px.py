@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 from random import randint
 
 scriptDirectory = os.path.abspath(os.path.dirname(__file__))
+logDate = time.strftime('%Y-%m-%d')
+
 userSession = requests.Session()
 userSession.headers.update({
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
@@ -18,10 +20,13 @@ pendingFilePath = scriptDirectory + '/' + pendingFileName
 acceptedFilePath = scriptDirectory + '/' + acceptedFileName
 ignoredFilePath = scriptDirectory + '/' + ignoredFileName
 
+logFileName = logDate + '_log.txt'
+logFilePath = scriptDirectory + '/logs/'
+
 loginParams = {
     'authenticity_token': '',
-    'session[email]': input('Whats your email?: '),
-    'session[password]': input('Whats your password?: ')
+    'session[email]': '',
+    'session[password]': ''
 }
 
 csrfHeaders = {
@@ -32,6 +37,15 @@ csrfHeaders = {
 pendingFollowList = []
 acceptedFollowList = []
 ignoredFollowList = []
+
+def printToLog(string):
+    global logFilePath, logFileName
+    logTime = time.strftime('%H:%M')
+    if not os.path.exists(logFilePath):
+        os.makedirs(logFilePath)
+    with open(logFilePath + logFileName, 'a+') as f:
+        f.write(logTime + ' - ' + string + '\n')
+    print(logTime + ' - ' + string)
 
 def retrieveLists():
     global pendingFilePath, acceptedFilePath, ignoredFilePath
@@ -80,19 +94,19 @@ def followUser(targetUserName):
         try:
             followResp = userSession.post('https://500px.com/' + targetUserName + '/follow', timeout = 5, headers = csrfHeaders)
             if followResp.status_code == 200:
-                print('Followed ' + targetUserName + '.')
+                printToLog('Followed ' + targetUserName + '.')
                 numFollowsDone += 1
                 addUserToPendingList(targetUserName)
                 continueLoop = False
             elif followResp.status_code == 403:
-                print('Already followed ' + targetUserName + '.')
+                printToLog('Already followed ' + targetUserName + '.')
                 continueLoop = False
             else:
-                print('A server error (' + str(followResp.status_code) + ') occured. Retrying...')
-                print('Error page: ' + followResp.url)
+                printToLog('A server error (' + str(followResp.status_code) + ') occured. Retrying...')
+                printToLog('Error page: ' + followResp.url)
                 time.sleep(5)
         except requests.exceptions.RequestException:
-            print('Web page timed out. Retrying...')
+            printToLog('Web page timed out. Retrying...')
             time.sleep(5)
     time.sleep(20)
 
@@ -125,11 +139,11 @@ def userExists(targetUserName):
             elif userResp.status_code == 404:
                 return False
             else:
-                print('A server error (' + str(userResp.status_code) + ') occured. Retrying...')
-                print('Error page: ' + userResp.url)
+                printToLog('A server error (' + str(userResp.status_code) + ') occured. Retrying...')
+                printToLog('Error page: ' + userResp.url)
                 time.sleep(5)
         except requests.exceptions.RequestException:
-            print('Web page timed out. Retrying...')
+            printToLog('Web page timed out. Retrying...')
             time.sleep(5)
     time.sleep(20)
 
@@ -140,14 +154,14 @@ def unfollowUser(targetUserName):
         try:
             unfollowResp = userSession.post('https://500px.com/' + targetUserName + '/unfollow', timeout = 5, headers = csrfHeaders)
             if unfollowResp.status_code == 200:
-                print('Unfollowed ' + targetUserName + '.')
+                printToLog('Unfollowed ' + targetUserName + '.')
                 continueLoop = False
             else:
-                print('A server error (' + str(unfollowResp.status_code) + ') occured. Retrying...')
-                print('Error page: ' + unfollowResp.url)
+                printToLog('A server error (' + str(unfollowResp.status_code) + ') occured. Retrying...')
+                printToLog('Error page: ' + unfollowResp.url)
                 time.sleep(5)
         except requests.exceptions.RequestException:
-            print('Web page timed out. Retrying...')
+            printToLog('Web page timed out. Retrying...')
             time.sleep(5)
     time.sleep(20)
 
@@ -204,14 +218,14 @@ while continueLoop:
     try:
         loginPage = userSession.get('https://500px.com/login', timeout = 5)
         if loginPage.status_code == 200:
-            print('Retrieved login page.')
+            printToLog('Retrieved login page.')
             continueLoop = False
         else:
-            print('A server error (' + str(loginPage.status_code) + ') occured. Retrying...')
-            print('Error page: ' + loginPage.url)
+            printToLog('A server error (' + str(loginPage.status_code) + ') occured. Retrying...')
+            printToLog('Error page: ' + loginPage.url)
             time.sleep(5)
     except requests.exceptions.RequestException:
-        print('Web page timed out. Retrying...')
+        printToLog('Web page timed out. Retrying...')
         time.sleep(5)
 time.sleep(20)
 
@@ -226,14 +240,14 @@ while continueLoop:
     try:
         userLogin = userSession.post('https://api.500px.com/v1/session', data = loginParams, timeout = 5)
         if userLogin.status_code == 200:
-            print('Logged in successfully.')
+            printToLog('Logged in successfully.')
             continueLoop = False
         else:
-            print('A server error (' + str(userLogin.status_code) + ') occured. Retrying...')
-            print('Error page: ' + userLogin.url)
+            printToLog('A server error (' + str(userLogin.status_code) + ') occured. Retrying...')
+            printToLog('Error page: ' + userLogin.url)
             time.sleep(5)
     except requests.exceptions.RequestException:
-        print('Web page timed out. Retrying...')
+        printToLog('Web page timed out. Retrying...')
         time.sleep(5)
 time.sleep(20)
 
@@ -251,12 +265,12 @@ while True:
     try:
         myFollowers = userSession.get('https://api.500px.com/v1/users/' + str(myUserInfo['id']) + '/followers?fullformat=0&page=' + str(pageNum) + '&rpp=50', timeout = 5)
         if myFollowers.status_code != 200:
-            print('A server error (' + str(myFollowers.status_code) + ') occured. Retrying...')
-            print('Error page: ' + myFollowers.url)
+            printToLog('A server error (' + str(myFollowers.status_code) + ') occured. Retrying...')
+            printToLog('Error page: ' + myFollowers.url)
             time.sleep(5)
             continue
     except requests.exceptions.RequestException:
-            print('Web page timed out. Retrying...')
+            printToLog('Web page timed out. Retrying...')
             time.sleep(5)
             continue
     tmpFollowers_json = json.loads(myFollowers.text)
@@ -273,7 +287,7 @@ for follower in list(myFollowers_json):
         continue
     removeUserFromPendingList(follower['username'])
     addUserToAcceptedList(follower['username'])
-    print(follower['username'] + ' followed you. Accepted.')
+    printToLog(follower['username'] + ' followed you. Accepted.')
     pendingUserNames.remove(follower['username'])
     myFollowers_json.remove(follower)
 
@@ -286,8 +300,8 @@ for follower in list(pendingFollowList):
         unfollowUser(follower['name'])
         addUserToIgnoredList(follower['name'])
     pendingUserNames.remove(follower['name'])
-    print(follower['name'] + ' didn\'t follow you. Ignored and unfollowed.')
-print('Review of followed users finished.')
+    printToLog(follower['name'] + ' didn\'t follow you. Ignored and unfollowed.')
+printToLog('Review of followed users finished.')
 
 # Time to view the up-and-coming and follow more people :)
 
@@ -299,12 +313,12 @@ while numFollowsDone < numFollowsWanted:
     try:
         upcomingPage = userSession.get('https://api.500px.com/v1/photos?feature=upcoming&include_states=false&page=' + str(pageNum) + '&rpp=50', timeout = 5, headers = csrfHeaders)
         if upcomingPage.status_code != 200:
-            print('A server error (' + str(upcomingPage.status_code) + ') occured. Retrying...')
-            print('Error page: ' + upcomingPage.url)
+            printToLog('A server error (' + str(upcomingPage.status_code) + ') occured. Retrying...')
+            printToLog('Error page: ' + upcomingPage.url)
             time.sleep(5)
             continue
     except requests.exceptions.RequestException:
-            print('Web page timed out. Retrying...')
+            printToLog('Web page timed out. Retrying...')
             time.sleep(5)
             continue
     upcomingPage_json = json.loads(upcomingPage.text)
@@ -315,4 +329,4 @@ while numFollowsDone < numFollowsWanted:
             break
     pageNum += 1
     time.sleep(20)
-print('Finished. No more users left to follow.')
+printToLog('Finished. No more users left to follow.')
