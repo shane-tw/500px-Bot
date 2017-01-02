@@ -23,10 +23,11 @@ ignoredFilePath = scriptDirectory + '/' + ignoredFileName
 logFileName = logDate + '_log.txt'
 logFilePath = scriptDirectory + '/logs/'
 
+### LOGIN CREDENTIALS
 loginParams = {
     'authenticity_token': '',
-    'session[email]': '',
-    'session[password]': ''
+    'session[email]': 'YOUR EMAIL HERE',
+    'session[password]': 'YOUR PASSWORD HERE'
 }
 
 csrfHeaders = {
@@ -89,18 +90,18 @@ def isUserIgnored(targetUserName):
 
 def followUser(targetUserName):
     global userSession, numFollowsDone
-    continueLoop = True
-    while continueLoop:
+    failCount = 0
+    while failCount < 3:
         try:
             followResp = userSession.post('https://500px.com/' + targetUserName + '/follow', timeout = 5, headers = csrfHeaders)
             if followResp.status_code == 200:
                 printToLog('Followed ' + targetUserName + '.')
                 numFollowsDone += 1
                 addUserToPendingList(targetUserName)
-                continueLoop = False
+                break
             elif followResp.status_code == 403:
                 printToLog('Already followed ' + targetUserName + '.')
-                continueLoop = False
+                break
             else:
                 printToLog('A server error (' + str(followResp.status_code) + ') occured. Retrying...')
                 printToLog('Error page: ' + followResp.url)
@@ -108,7 +109,7 @@ def followUser(targetUserName):
         except requests.exceptions.RequestException:
             printToLog('Web page timed out. Retrying...')
             time.sleep(5)
-    time.sleep(20)
+        failCount += 1
 
 def addUserToPendingList(targetUserName):
     global pendingFollowList, pendingFilePath
@@ -130,8 +131,8 @@ def addUserToIgnoredList(targetUserName):
 
 def userExists(targetUserName):
     global userSession
-    continueLoop = True
-    while continueLoop:
+    failCount = 0
+    while failCount < 3:
         try:
             userResp = userSession.get('https://500px.com/' + targetUserName, timeout = 5)
             if userResp.status_code == 200:
@@ -145,17 +146,17 @@ def userExists(targetUserName):
         except requests.exceptions.RequestException:
             printToLog('Web page timed out. Retrying...')
             time.sleep(5)
-    time.sleep(20)
+        failCount += 1
 
 def unfollowUser(targetUserName):
     global userSession
-    continueLoop = True
-    while continueLoop:
+    failCount = 0
+    while failCount < 3:
         try:
             unfollowResp = userSession.post('https://500px.com/' + targetUserName + '/unfollow', timeout = 5, headers = csrfHeaders)
             if unfollowResp.status_code == 200:
                 printToLog('Unfollowed ' + targetUserName + '.')
-                continueLoop = False
+                break
             else:
                 printToLog('A server error (' + str(unfollowResp.status_code) + ') occured. Retrying...')
                 printToLog('Error page: ' + unfollowResp.url)
@@ -163,7 +164,7 @@ def unfollowUser(targetUserName):
         except requests.exceptions.RequestException:
             printToLog('Web page timed out. Retrying...')
             time.sleep(5)
-    time.sleep(20)
+        failCount += 1
 
 def removeUserFromPendingList(targetUserName):
     global pendingFollowList, pendingFilePath
@@ -213,21 +214,26 @@ for i, v in enumerate(list(ignoredFollowList)):
 
 # This is used in order to obtain the authenticity token required for logging in.
 
-continueLoop = True
-while continueLoop:
+failCount = 0
+while True:
     try:
         loginPage = userSession.get('https://500px.com/login', timeout = 5)
         if loginPage.status_code == 200:
             printToLog('Retrieved login page.')
-            continueLoop = False
+            break
         else:
             printToLog('A server error (' + str(loginPage.status_code) + ') occured. Retrying...')
             printToLog('Error page: ' + loginPage.url)
-            time.sleep(5)
     except requests.exceptions.RequestException:
         printToLog('Web page timed out. Retrying...')
-        time.sleep(5)
-time.sleep(20)
+ 
+    time.sleep(5)
+    failCount += 1
+    if failCount >= 3:
+        time.sleep(3600) # Sleep for an hour
+        failCount = 0
+ 
+time.sleep(5)
 
 loginPage_soup = BeautifulSoup(loginPage.text, 'html.parser')
 loginParams['authenticity_token'] = loginPage_soup.find('meta', {'name': 'csrf-token'}).get('content')
@@ -235,13 +241,13 @@ csrfHeaders['X-CSRF-Token'] = loginParams['authenticity_token']
 
 # This is the actual login request.
 
-continueLoop = True
-while continueLoop:
+failCount = 0
+while failCount < 3:
     try:
         userLogin = userSession.post('https://api.500px.com/v1/session', data = loginParams, timeout = 5)
         if userLogin.status_code == 200:
             printToLog('Logged in successfully.')
-            continueLoop = False
+            break
         else:
             printToLog('A server error (' + str(userLogin.status_code) + ') occured. Retrying...')
             printToLog('Error page: ' + userLogin.url)
@@ -249,7 +255,8 @@ while continueLoop:
     except requests.exceptions.RequestException:
         printToLog('Web page timed out. Retrying...')
         time.sleep(5)
-time.sleep(20)
+    failCount += 1
+time.sleep(randint(20,30))
 
 # Getting my user info from login response.
 
@@ -278,7 +285,7 @@ while True:
     if pageNum == tmpFollowers_json['followers_pages']:
         break
     pageNum += 1
-    time.sleep(20)
+    time.sleep(randint(20,30))
 
 for follower in list(myFollowers_json):
     currentTime = time.time()
@@ -290,6 +297,7 @@ for follower in list(myFollowers_json):
     printToLog(follower['username'] + ' followed you. Accepted.')
     pendingUserNames.remove(follower['username'])
     myFollowers_json.remove(follower)
+    time.sleep(randint(20,30))
 
 for follower in list(pendingFollowList):
     currentTime = time.time()
@@ -301,6 +309,7 @@ for follower in list(pendingFollowList):
         addUserToIgnoredList(follower['name'])
     pendingUserNames.remove(follower['name'])
     printToLog(follower['name'] + ' didn\'t follow you. Ignored and unfollowed.')
+    time.sleep(randint(20,30))
 printToLog('Review of followed users finished.')
 
 # Time to view the up-and-coming and follow more people :)
@@ -328,5 +337,5 @@ while numFollowsDone < numFollowsWanted:
         elif numFollowsDone >= numFollowsWanted:
             break
     pageNum += 1
-    time.sleep(20)
+    time.sleep(randint(20,30))
 printToLog('Finished. No more users left to follow.')
