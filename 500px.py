@@ -109,7 +109,7 @@ def followUser(targetUserName):
         except requests.exceptions.RequestException:
             printToLog('Web page timed out. Retrying...')
             time.sleep(5)
-            failCount += 1
+        failCount += 1
 
 def addUserToPendingList(targetUserName):
     global pendingFollowList, pendingFilePath
@@ -215,7 +215,7 @@ for i, v in enumerate(list(ignoredFollowList)):
 # This is used in order to obtain the authenticity token required for logging in.
 
 failCount = 0
-while failCount < 3:
+while True:
     try:
         loginPage = userSession.get('https://500px.com/login', timeout = 5)
         if loginPage.status_code == 200:
@@ -224,11 +224,15 @@ while failCount < 3:
         else:
             printToLog('A server error (' + str(loginPage.status_code) + ') occured. Retrying...')
             printToLog('Error page: ' + loginPage.url)
-            time.sleep(5)
     except requests.exceptions.RequestException:
         printToLog('Web page timed out. Retrying...')
-        time.sleep(5)
+ 
+    time.sleep(5)
     failCount += 1
+    if failCount >= 3:
+        time.sleep(3600) # Sleep for an hour
+        failCount = 0
+ 
 time.sleep(5)
 
 loginPage_soup = BeautifulSoup(loginPage.text, 'html.parser')
