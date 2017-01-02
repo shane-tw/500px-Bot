@@ -334,6 +334,7 @@ while numFollowsDone < numFollowsWanted:
     for upcomingPhoto in upcomingPage_json['photos']:
         if not isUserPending(myUserInfo['username']) and not isUserAccepted(myUserInfo['username']) and not isUserIgnored(myUserInfo['username']) and numFollowsDone < numFollowsWanted:
             followUser(upcomingPhoto['user']['username'])
+            time.sleep(randint(20,30))
         elif numFollowsDone >= numFollowsWanted:
             break
     pageNum += 1
