@@ -256,7 +256,7 @@ while failCount < 3:
         printToLog('Web page timed out. Retrying...')
         time.sleep(5)
     failCount += 1
-time.sleep(randint(5,15))
+time.sleep(randint(20,30))
 
 # Getting my user info from login response.
 
@@ -285,7 +285,7 @@ while True:
     if pageNum == tmpFollowers_json['followers_pages']:
         break
     pageNum += 1
-    time.sleep(randint(15,25))
+    time.sleep(randint(20,30))
 
 for follower in list(myFollowers_json):
     currentTime = time.time()
@@ -297,7 +297,7 @@ for follower in list(myFollowers_json):
     printToLog(follower['username'] + ' followed you. Accepted.')
     pendingUserNames.remove(follower['username'])
     myFollowers_json.remove(follower)
-    time.sleep(randint(15,25))
+    time.sleep(randint(20,30))
 
 for follower in list(pendingFollowList):
     currentTime = time.time()
@@ -309,7 +309,7 @@ for follower in list(pendingFollowList):
         addUserToIgnoredList(follower['name'])
     pendingUserNames.remove(follower['name'])
     printToLog(follower['name'] + ' didn\'t follow you. Ignored and unfollowed.')
-    time.sleep(randint(15,25))
+    time.sleep(randint(20,30))
 printToLog('Review of followed users finished.')
 
 # Time to view the up-and-coming and follow more people :)
@@ -337,5 +337,5 @@ while numFollowsDone < numFollowsWanted:
         elif numFollowsDone >= numFollowsWanted:
             break
     pageNum += 1
-    time.sleep(randint(15,25))
+    time.sleep(randint(20,30))
 printToLog('Finished. No more users left to follow.')
