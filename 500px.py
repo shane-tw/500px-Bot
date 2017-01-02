@@ -305,7 +305,9 @@ for follower in list(pendingFollowList):
         continue
     removeUserFromPendingList(follower['name'])
     if userExists(follower['name']):
+        time.sleep(randint(20,30))
         unfollowUser(follower['name'])
+        time.sleep(randint(20,30))
         addUserToIgnoredList(follower['name'])
     pendingUserNames.remove(follower['name'])
     printToLog(follower['name'] + ' didn\'t follow you. Ignored and unfollowed.')
@@ -334,6 +336,7 @@ while numFollowsDone < numFollowsWanted:
     for upcomingPhoto in upcomingPage_json['photos']:
         if not isUserPending(myUserInfo['username']) and not isUserAccepted(myUserInfo['username']) and not isUserIgnored(myUserInfo['username']) and numFollowsDone < numFollowsWanted:
             followUser(upcomingPhoto['user']['username'])
+            time.sleep(randint(20,30))
         elif numFollowsDone >= numFollowsWanted:
             break
     pageNum += 1
