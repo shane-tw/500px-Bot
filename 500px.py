@@ -308,7 +308,6 @@ for follower in list(myFollowers_json):
 
 if unfollowAccepted == True:
     currentTime = time.time()
-    printToLog("Unfollowing old users from accepted list")
     for follower in list(acceptedFollowList):
         if currentTime - follower['time_followed'] > 604800:
             if userExists(follower['name']):
