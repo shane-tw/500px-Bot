@@ -30,6 +30,9 @@ loginParams = {
     'session[password]': 'YOUR PASSWORD HERE'
 }
 
+### UNFOLLOW ACCEPTED USERS (Unfollow people who follow you back after )
+unfollowAccepted = True
+
 csrfHeaders = {
     'X-CSRF-Token': '',
     'X-Requested-With': 'XMLHttpRequest'
@@ -200,12 +203,15 @@ retrieveLists()
 # Time to remove anyone in any list for more than a week.
 
 currentTime = time.time()
-for i, v in enumerate(list(acceptedFollowList)):
-    if currentTime - v['time_followed'] > 604800:
-        acceptedFollowList.remove(v)
-        with open(acceptedFilePath, 'w') as f:
-            f.write(json.dumps(acceptedFollowList))
+if unfollowAccepted != True:
+    printToLog("Clearing old users from accepted list")
+    for i, v in enumerate(list(acceptedFollowList)):
+        if currentTime - v['time_followed'] > 604800:
+            acceptedFollowList.remove(v)
+            with open(acceptedFilePath, 'w') as f:
+                f.write(json.dumps(acceptedFollowList))
 
+printToLog("Clearing old users from ignored list")
 for i, v in enumerate(list(ignoredFollowList)):
     if currentTime - v['time_followed'] > 604800:
         ignoredFollowList.remove(v)
@@ -231,6 +237,7 @@ while True:
     failCount += 1
     if failCount >= 3:
         time.sleep(3600) # Sleep for an hour
+        printToLog('Waiting an hour before trying...')
         failCount = 0
  
 time.sleep(5)
@@ -298,6 +305,16 @@ for follower in list(myFollowers_json):
     pendingUserNames.remove(follower['username'])
     myFollowers_json.remove(follower)
     time.sleep(randint(20,30))
+
+if unfollowAccepted == True:
+    currentTime = time.time()
+    for follower in list(acceptedFollowList):
+        if currentTime - follower['time_followed'] > 604800:
+            if userExists(follower['name']):
+                unfollowUser(follower['name'])
+                removeUserFromAcceptedList(follower['name'])
+            printToLog(follower['name'] + ' followed you over a week ago. Unfollowed.')
+            time.sleep(randint(20,30))
 
 for follower in list(pendingFollowList):
     currentTime = time.time()

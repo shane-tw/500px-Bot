@@ -5,5 +5,6 @@ The general idea is to basically earn yourself 500px followers while not followi
 * It follows `numFollowsWanted` users on that list, ignoring users already followed, every day.
 * Every two days, if the user followed hasn't followed the bot back, the user is unfollowed and blacklisted by the bot.
 * Once a user has been on a list, be it the list of followed users, or the blacklisted users, for a week, their name is purged from the applicable list(s) and there is a chance that the bot may attempt to follow them again in the future, due to users being capable of entering the Upcoming page an infinite number of times.
+* If unfollowAccepted is set to True, users will be unfollowed after you have followed them for a week.
 
 **Note**: This program needs to be ran as part of a daily task or cronjob depending on your operating system. It won't run itself every day :)
