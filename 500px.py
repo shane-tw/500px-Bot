@@ -98,6 +98,9 @@ def followUser(targetUserName):
                 numFollowsDone += 1
                 addUserToPendingList(targetUserName)
                 continueLoop = False
+            elif followResp.status_code == 404:
+                printToLog('User ' + targetUserName + ' no longer exists. Skipped follow.')
+                continueLoop = False
             elif followResp.status_code == 403:
                 printToLog('Already followed ' + targetUserName + '.')
                 continueLoop = False
@@ -128,6 +131,7 @@ def addUserToIgnoredList(targetUserName):
     with open(ignoredFilePath, 'w') as f:
         f.write(json.dumps(ignoredFollowList))
 
+'''
 def userExists(targetUserName):
     global userSession
     continueLoop = True
@@ -146,6 +150,7 @@ def userExists(targetUserName):
             printToLog('Web page timed out. Retrying...')
             time.sleep(5)
     time.sleep(20)
+'''
 
 def unfollowUser(targetUserName):
     global userSession
@@ -155,6 +160,9 @@ def unfollowUser(targetUserName):
             unfollowResp = userSession.post('https://500px.com/' + targetUserName + '/unfollow', timeout = 5, headers = csrfHeaders)
             if unfollowResp.status_code == 200:
                 printToLog('Unfollowed ' + targetUserName + '.')
+                continueLoop = False
+            elif unfollowResp.status_code == 404:
+                printToLog('User ' + targetUserName + ' no longer exists. Skipped unfollow.')
                 continueLoop = False
             else:
                 printToLog('A server error (' + str(unfollowResp.status_code) + ') occured. Retrying...')
@@ -296,9 +304,9 @@ for follower in list(pendingFollowList):
     if currentTime - follower['time_followed'] <= 172800:
         continue
     removeUserFromPendingList(follower['name'])
-    if userExists(follower['name']):
-        unfollowUser(follower['name'])
-        addUserToIgnoredList(follower['name'])
+    #if userExists(follower['name']): # Commented this out, so should save some time when unfollowing.
+    unfollowUser(follower['name'])
+    addUserToIgnoredList(follower['name'])
     pendingUserNames.remove(follower['name'])
     printToLog(follower['name'] + ' didn\'t follow you. Ignored and unfollowed.')
 printToLog('Review of followed users finished.')
