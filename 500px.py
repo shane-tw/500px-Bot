@@ -40,7 +40,7 @@ ignoredFollowList = []
 
 def printToLog(string):
     global logFilePath, logFileName
-    logTime = time.strftime('%H:%M')
+    logTime = time.strftime('%H:%M:%S')
     if not os.path.exists(logFilePath):
         os.makedirs(logFilePath)
     with open(logFilePath + logFileName, 'a+') as f:
@@ -317,10 +317,13 @@ while numFollowsDone < numFollowsWanted:
     upcomingPage = requestWebPage('GET', 'https://api.500px.com/v1/photos?feature=upcoming&include_states=false&page=' + str(pageNum) + '&rpp=50', headers = csrfHeaders)
     upcomingPage_json = json.loads(upcomingPage.text)
     for upcomingPhoto in upcomingPage_json['photos']:
+        userName = upcomingPhoto['user']['username']
         if numFollowsDone == numFollowsWanted:
             break
-        if not isUserPending(myUserInfo['username']) and not isUserAccepted(myUserInfo['username']) and not isUserIgnored(myUserInfo['username']):
-            followUser(upcomingPhoto['user']['username'])
+        if not isUserPending(userName) and not isUserAccepted(userName) and not isUserIgnored(userName):
+            followUser(userName)
+        else:
+            printToLog('Skipping ' + userName + '.')
     pageNum += 1
     time.sleep(20)
 printToLog('Finished. No more users left to follow.')
