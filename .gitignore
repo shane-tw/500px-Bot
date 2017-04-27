@@ -45,3 +45,12 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Project files
+logs
+500px-run.py
+500px-test.py
+500px-test2.py
+acceptedUsers.txt
+ignoredUsers.txt
+pendingUsers.txt
