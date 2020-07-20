@@ -1,3 +1,6 @@
+**Disclaimer**: This bot is no longer in active development. It may no longer function as-is. Use at your own risk.
+
+# About
 This bot was developed with the purpose of automating tedious tasks on [500px](https://500px.com/), a website for designers to share samples of their work with each other.
 The general idea is to basically earn yourself 500px followers while not following thousands who have no intention in following you back.
 # What It Does
